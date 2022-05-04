@@ -8,7 +8,8 @@
     "plugin:react/recommended",
     "plugin:prettier/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:react/jsx-runtime"
+    "plugin:react/jsx-runtime",
+    "plugin:@next/next/recommended"
   ],
   "plugins": ["react", "prettier", "import", "@typescript-eslint"],
   "parser": "@typescript-eslint/parser",
