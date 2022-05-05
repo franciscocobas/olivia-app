@@ -1,34 +1,71 @@
 import {format} from "date-fns";
 import {uy} from "date-fns/locale";
 import {useEffect, useState} from "react";
+import {collection, addDoc, getDocs} from "firebase/firestore";
+import fromUnixTime from "date-fns/fromUnixTime";
+
+import {database} from "../firebaseConfig";
+const dbInstance = collection(database, "eventos");
 
 export default function Home() {
-  const [hour, setHour] = useState();
+  const [now, setNow] = useState();
   const [events, setEvents] = useState([]);
   const [eventRegistered, setEventRegistered] = useState("");
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   useEffect(() => {
-    setHour(format(new Date(), "hh:mm:ss aaaa", {locale: uy}));
+    setNow(new Date());
+
     setInterval(() => {
-      setHour(() => format(new Date(), "hh:mm:ss aaaa", {locale: uy}));
+      setNow(() => new Date());
     }, 1000);
+
+    async function getEventsFromFS() {
+      setLoadingEvents(true);
+      const data = await getDocs(dbInstance);
+
+      setEvents(
+        data.docs.map((item) => {
+          return {date: fromUnixTime(item.data().date.seconds), name: item.data().name};
+        }),
+      );
+      setLoadingEvents(false);
+    }
+    getEventsFromFS();
   }, []);
 
-  function registerEvent(event) {
-    setEvents([...events, {event, hour: new Date()}]);
-    setEventRegistered(event);
+  function registerEvent(eventName) {
+    const newEvent = {name: eventName, date: new Date()};
+
+    setEvents([...events, newEvent]);
+    addDoc(dbInstance, newEvent);
+    setEventRegistered(eventName);
     setTimeout(() => {
       setEventRegistered("");
     }, 2000);
   }
 
+  function getEmoticon(eventName) {
+    switch (eventName) {
+      case "caca":
+        return "💩";
+      case "teta":
+        return "👩🏻‍🍼";
+      case "mema":
+        return "🍼";
+    }
+  }
+
   return (
-    <>
+    <div className="mx-auto h-full max-w-md border-2">
       <div className="flex h-60 items-center justify-center border-b-4 border-solid border-black bg-[url('/images/olivia.jpg')] bg-cover bg-center bg-no-repeat">
         <h1 className="font-bold text-4xl text-white drop-shadow-md">Olivia App</h1>
       </div>
 
-      <p className="my-4 text-center font-bold">{hour}</p>
+      <p className="my-4 text-center font-bold">
+        {now ? format(now, "dd/MM hh:mm:ss aaaa", {locale: uy}) : null}
+        {/* {JSON.stringify(now)} */}
+      </p>
 
       <div className="flex flex-col">
         <button
@@ -56,19 +93,25 @@ export default function Home() {
           {eventRegistered === "caca" ? <span className="absolute ml-6">✅</span> : null}
         </button>
       </div>
-      {events.length > 0 ? (
-        <div className="m-2">
-          <p className="mt-4 text-center font-semibold text-xl uppercase">Ultimos registros</p>
+      {}
+
+      <div className="m-2">
+        <p className="mt-4 text-center font-semibold text-xl uppercase">Ultimos registros</p>
+        {loadingEvents ? <p className="text-center">Cargando eventos...</p> : null}
+        {events.length > 0 ? (
           <ul className="mt-2">
             {events.map((event) => (
-              <li key={`${event.event}-${event.hour}`} className="">
-                Se registró <span className="font-bold">{event.event}</span> a las{" "}
-                {format(event.hour, "hh:mm:ss aaaa", {locale: uy})}
+              <li key={`${event.name}-${event.date}`} className="">
+                Se registró{" "}
+                <span className="font-bold">
+                  {event.name} ({getEmoticon(event.name)})
+                </span>{" "}
+                el: {format(event.date, "dd/MM hh:mm:ss aaaa", {locale: uy})}
               </li>
             ))}
           </ul>
-        </div>
-      ) : null}
-    </>
+        ) : null}
+      </div>
+    </div>
   );
 }
