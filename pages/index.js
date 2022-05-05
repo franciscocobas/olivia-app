@@ -37,7 +37,7 @@ export default function Home() {
   function registerEvent(eventName) {
     const newEvent = {name: eventName, date: new Date()};
 
-    setEvents([...events, newEvent]);
+    setEvents([newEvent, ...events]);
     addDoc(dbInstance, newEvent);
     setEventRegistered(eventName);
     setTimeout(() => {
