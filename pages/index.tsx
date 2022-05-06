@@ -1,5 +1,5 @@
 import {format} from "date-fns";
-import {uy} from "date-fns/locale";
+import {ar} from "date-fns/locale";
 import {useEffect, useState} from "react";
 import {collection, addDoc, getDocs} from "firebase/firestore";
 import fromUnixTime from "date-fns/fromUnixTime";
@@ -7,11 +7,16 @@ import fromUnixTime from "date-fns/fromUnixTime";
 import {database} from "../firebaseConfig";
 const dbInstance = collection(database, "eventos");
 
+type Event = {
+  name: string;
+  date: Date;
+};
+
 export default function Home() {
-  const [now, setNow] = useState();
-  const [events, setEvents] = useState([]);
-  const [eventRegistered, setEventRegistered] = useState("");
-  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [now, setNow] = useState<Date>();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventRegistered, setEventRegistered] = useState<string>("");
+  const [loadingEvents, setLoadingEvents] = useState<boolean>(false);
 
   useEffect(() => {
     setNow(new Date());
@@ -63,7 +68,7 @@ export default function Home() {
       </div>
 
       <p className="my-4 text-center font-bold">
-        {now ? format(now, "dd/MM hh:mm:ss aaaa", {locale: uy}) : null}
+        {now ? format(now, "dd/MM hh:mm:ss aaaa", {locale: ar}) : null}
         {/* {JSON.stringify(now)} */}
       </p>
 
@@ -100,13 +105,13 @@ export default function Home() {
         {loadingEvents ? <p className="text-center">Cargando eventos...</p> : null}
         {events.length > 0 ? (
           <ul className="mt-2">
-            {events.map((event) => (
+            {events.map((event: Event) => (
               <li key={`${event.name}-${event.date}`} className="">
                 Se registró{" "}
                 <span className="font-bold">
                   {event.name} ({getEmoticon(event.name)})
                 </span>{" "}
-                el: {format(event.date, "dd/MM hh:mm:ss aaaa", {locale: uy})}
+                el: {format(event.date, "dd/MM hh:mm:ss aaaa", {locale: ar})}
               </li>
             ))}
           </ul>
